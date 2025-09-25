@@ -1,118 +1,96 @@
-# RideSentry - Mobility Fraud Detection Engine
+# RideSentry - An End-to-End Mobility Fraud Detection Engine
 
-## Overview
+[![Python Version](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This project presents an end-to-end data science solution aimed at detecting and preventing payment fraud within a simulated ride-sharing (mobility) platform, inspired by challenges faced by companies like Uber. It encompasses data generation, in-depth exploratory data analysis, advanced feature engineering, machine learning model development (LightGBM), and a critical business impact assessment. The project also outlines a robust A/B testing framework for real-world validation.
+## 1. Project Overview
 
-## Problem Statement
+RideSentry is a comprehensive data science project that simulates a production-level fraud detection system for a modern ride-sharing platform. This project goes beyond simple model training to include a full project lifecycle: synthetic data generation, advanced feature engineering, business-focused model optimization, deep model explainability, and a rigorous A/B testing framework for deployment.
 
-Fraudulent activities can lead to significant financial losses, erode user trust, and strain operational resources (e.g., customer support). The goal is to build an intelligent system that accurately identifies high-risk transactions while minimizing false positives to maintain a positive user experience.
+---
 
-## Key Features & Methodology
+## 2. Business Problem & Objective
 
-### 1. Data Generation & Exploration
+**Problem:** Payment fraud in the mobility sector leads to direct financial losses, erodes customer trust, and increases operational costs for customer support teams. A reactive approach is insufficient; a proactive, data-driven system is required to identify and mitigate risk in real-time.
 
-A synthetic dataset was generated to mimic real-world ride-sharing transactions, including user information, trip details, and payment methods, with embedded fraud patterns.
+**Objective:** To develop a machine learning model that accurately predicts the probability of a transaction being fraudulent, and to create a deployment strategy that maximizes financial savings while protecting the user experience.
 
-#### **Fraud Rate & Initial Insights:**
+---
 
-The dataset was generated with a 2% fraud rate. Initial exploratory data analysis (EDA) revealed key differences between fraudulent and legitimate trips.
+## 3. Data & Feature Engineering
 
-**Fraud vs. Non-Fraud Fare Distribution:**
-_This boxplot illustrates that fraudulent trips often involve significantly higher fare amounts, indicating a potential 'high-value' target for fraudsters._
-![Fare Distribution for Fraud vs. Non-Fraud Trips](path/to/your/fare_distribution.png)
-*(Replace `path/to/your/fare_distribution.png` with the actual path to your image on GitHub)*
+A synthetic dataset was generated to mirror real-world user and transaction data, with a 2% fraud rate. The core of the predictive power comes from advanced feature engineering.
 
-**Fraud Rate by Hour of Day:**
-_This chart shows that fraud risk isn't uniform throughout the day, with certain hours exhibiting higher relative fraud rates, which could inform real-time monitoring strategies._
-![Fraud Rate by Hour of Day](path/to/your/fraud_by_hour.png)
-*(Replace `path/to/your/fraud_by_hour.png` with the actual path to your image on GitHub)*
+**Feature Categories:**
+* **User History Features:** Capture user tenure and experience (e.g., `seconds_since_signup`, `user_trip_count`). New or inexperienced accounts often correlate with higher risk.
+* **Velocity Features:** Monitor the frequency of actions within short time windows (e.g., `user_trips_last_1h`). Spikes in activity are a classic indicator of fraudulent behavior.
+* **Relational Features:** Identify suspicious connections between accounts (e.g., `num_users_on_device`). A single device associated with numerous new accounts is a major red flag for fraud rings.
 
-### 2. Advanced Feature Engineering
+---
 
-Beyond raw transaction data, several advanced features were engineered to capture behavioral patterns, velocity, and relational anomalies crucial for fraud detection:
+## 4. Modeling & Evaluation
 
-* **User History:** `seconds_since_signup` (user tenure), `user_trip_count` (number of previous trips).
-* **Velocity Features:** `user_trips_last_1h` (trip frequency within a short window).
-* **Relational Features:** `num_users_on_device` (indicating shared devices, a common fraud ring indicator).
-* **(Potential Upgrade):** Graph-based features (e.g., connected components, degree centrality) could further enhance detection of fraud rings.
+### 4.1. Model Selection
+A **LightGBM Classifier** was selected for its high performance, speed, and inherent ability to handle imbalanced datasets through parameters like `scale_pos_weight`.
 
-### 3. Machine Learning Model Development (LightGBM)
+### 4.2. Performance
+The model's performance was evaluated using the **Average Precision-Recall (APR) Score**, which is a robust metric for imbalanced classification tasks.
+* **Result:** The model achieved an **APR Score of 0.59**, significantly outperforming a random baseline (which would be ~0.02), indicating a strong ability to distinguish fraudulent activity.
 
-A LightGBM classifier was chosen for its efficiency and strong performance on tabular data, especially with imbalanced datasets (due to its `scale_pos_weight` parameter).
+### 4.3. Business Impact Analysis
+To make the model's output actionable, a cost-benefit analysis was performed to find the optimal prediction threshold.
+* **Assumed Costs:**
+    * Cost of a False Positive (blocking a good user): **$10**
+    * Cost of a False Negative (missing fraud): **$150**
+* **Result:** The analysis identified the optimal probability threshold that minimizes total financial cost, providing a clear, data-driven strategy for taking action on model predictions.
 
-#### **Model Performance (Precision-Recall Curve):**
+---
 
-_The Precision-Recall curve demonstrates the trade-off between identifying actual fraud (Recall) and minimizing false alarms (Precision). An Average Precision (AP) score of 0.59 significantly outperforms a random baseline, indicating robust detection capabilities._
-![Precision-Recall Curve](path/to/your/precision_recall_curve.png)
-*(Replace `path/to/your/precision_recall_curve.png` with the actual path to your image on GitHub)*
+## 5. Model Explainability (XAI) with SHAP
 
-### 4. Business Impact Analysis & Optimal Thresholding
+Understanding *why* the model makes its decisions is critical for trust and debugging. **SHAP (SHapley Additive exPlanations)** was used to interpret the model.
 
-To translate model predictions into actionable business decisions, a cost-benefit analysis was performed.
+**Key Insights:**
+1.  **`fare`:** High fare values were the single most powerful predictor of fraud.
+2.  **`user_trip_count`:** Very low trip counts (i.e., new users) were strongly associated with higher fraud risk.
+3.  **`seconds_since_signup`:** Similarly, accounts created very recently were flagged as higher risk.
+4.  **`user_trips_last_1h`:** A sudden burst of activity was a clear indicator of potential fraud.
 
-* **Cost of False Positive (FP):** \$10 (e.g., customer support, user churn).
-* **Cost of False Negative (FN):** \$150 (average fraud loss).
+---
 
-#### **Cost vs. Prediction Threshold:**
+## 6. Deployment & A/B Testing Framework
 
-_This plot identifies the optimal prediction threshold that minimizes the total cost to the business, balancing the losses from missed fraud against the costs of incorrectly blocking legitimate users._
-![Cost vs. Prediction Threshold](path/to/your/cost_threshold.png)
-*(Replace `path/to/your/cost_threshold.png` with the actual path to your image on GitHub)*
+A model is only valuable when deployed. A rigorous A/B testing plan was designed to validate its real-world impact.
 
-### 5. Model Explainability (SHAP)
+* **Hypothesis:** The RideSentry model will produce a statistically significant increase in Net Financial Savings.
+* **Primary Metric:** Net Financial Savings `(Fraud Prevented) - (Cost of False Positives)`.
+* **Guardrail Metrics:** Trip Completion Rate, Customer Support Contact Rate, New User Retention.
+* **Decision Criteria:** Roll out the model if the primary metric improves significantly (p-value < 0.05) without harming guardrail metrics.
 
-Understanding *why* a model makes a prediction is crucial for trust, investigation, and continuous improvement. SHAP values were used to interpret the LightGBM model.
+---
 
-#### **SHAP Summary Plot (Feature Importance):**
+## 7. Tech Stack
 
-_This plot summarizes the most influential features. `fare` and `user_trip_count` (or lack thereof for new users) emerged as the strongest indicators for fraud, pushing the prediction towards higher risk._
-![SHAP Summary Plot](path/to/your/shap_summary.png)
-*(Replace `path/to/your/shap_summary.png` with the actual path to your image on GitHub)*
-
-#### **SHAP Force Plot (Individual Prediction Explanation):**
-
-_A Force Plot for a specific fraudulent transaction would visually break down how each feature contributes to pushing the model's output towards a fraudulent classification. (Screenshot omitted due to interactive nature; can be viewed in the notebook)._
-*(If you can generate a static image, replace `path/to/your/shap_force.png`)*
-
-### 6. A/B Testing Framework for Deployment
-
-A detailed A/B test plan was designed to rigorously validate the model's real-world impact before full-scale deployment:
-
-* **Objective:** Increase Net Financial Savings.
-* **Hypothesis:** Treatment group (new model) shows a statistically significant increase in Net Financial Savings compared to Control (existing system).
-* **Metrics:** Primary: Net Financial Savings. Guardrail: Trip Completion Rate, Customer Support Contact Rate, New User Retention.
-* **Methodology:** Random user assignment (Control vs. Treatment), statistical testing (e.g., t-test) for significance.
-
-## Tech Stack
-
-* **Python:** Pandas, NumPy, Scikit-learn, LightGBM, SHAP, Matplotlib, Seaborn
-* **Environment:** Jupyter Notebook
+* **Data Analysis & ML:** Python, Pandas, NumPy, Scikit-learn, LightGBM, SHAP
+* **Visualization:** Matplotlib, Seaborn
+* **Development Environment:** Jupyter Notebook
 * **Version Control:** Git & GitHub
 
-## How to Run
+---
+
+## 8. How to Run
 
 1.  **Clone the repository:**
     ```bash
     git clone [https://github.com/gouri-rabgotra21/RideSentry-Fraud-Detection.git](https://github.com/gouri-rabgotra21/RideSentry-Fraud-Detection.git)
     cd RideSentry-Fraud-Detection
     ```
-2.  **Install dependencies:** (It's good practice to have a `requirements.txt` file)
+2.  **Install dependencies:** (A `requirements.txt` file should be created)
     ```bash
-    pip install -r requirements.txt
+    pip install pandas numpy scikit-learn lightgbm shap matplotlib seaborn jupyter
     ```
-    *(You can create `requirements.txt` by running `pip freeze > requirements.txt` in your project folder.)*
 3.  **Launch Jupyter Notebook:**
     ```bash
     jupyter notebook
     ```
-4.  Open and run the `fraud_detection_notebook.ipynb` file.
-
-## Future Enhancements
-
-* Implement **graph-based features** using NetworkX for fraud ring detection.
-* Simulate a **real-time feature store** and streaming analytics.
-* Integrate **model monitoring** for concept drift detection.
-* Experiment with **deep learning sequence models (LSTMs)** to capture temporal user behavior.
-
----
+4.  Open and run the main notebook file.
