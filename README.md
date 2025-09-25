@@ -8,6 +8,7 @@
 RideSentry is a comprehensive data science project that simulates a production-level fraud detection system for a modern ride-sharing platform. This project goes beyond simple model training to include a full project lifecycle: synthetic data generation, advanced feature engineering, business-focused model optimization, deep model explainability, and a rigorous A/B testing framework for deployment.
 
 ---
+![Platform Architecture Diagram](platform_architecture.png)
 
 ## 2. Business Problem & Objective
 
